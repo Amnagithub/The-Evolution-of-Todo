@@ -2,6 +2,7 @@
 List command implementation.
 """
 
+import json
 from argparse import ArgumentParser, Namespace
 
 from todo.cli.commands.base import Command
@@ -18,6 +19,11 @@ class ListCommand(Command):
             choices=["all", "pending", "completed"],
             default="all",
             help="Filter by status"
+        )
+        parser.add_argument(
+            "--extended",
+            action="store_true",
+            help="Show full details including description, priority, and tags"
         )
         parser.add_argument(
             "--format",
@@ -37,45 +43,79 @@ class ListCommand(Command):
             tasks = [t for t in tasks if t.status.value == "completed"]
 
         if not tasks:
-            print("No tasks found.")
+            print("No tasks found. Use 'todo add <title>' to create a task.")
+            print("\nShowing 0 task(s).")
             return 0
 
-        # Format output
-        if args.format == "json":
-            self._print_json(tasks)
-        elif args.format == "simple":
-            self._print_simple(tasks)
+        # Extended output
+        if args.extended:
+            self._print_extended(tasks)
         else:
-            self._print_table(tasks)
+            # Format output
+            if args.format == "json":
+                self._print_json(tasks)
+            elif args.format == "simple":
+                self._print_simple(tasks)
+            else:
+                self._print_table(tasks)
 
         return 0
 
     def _print_table(self, tasks):
-        """Print tasks in table format."""
-        print("ID  | Title                    | Status    | Created")
-        print("----|--------------------------|-----------|----------")
+        """Print tasks in table format with priority and tags."""
+        print("ID  Status    Priority  Title                      Tags")
+        print("---- --------- --------- -------------------------- ---------------")
         for task in tasks:
-            status = "Complete" if task.status.value == "completed" else "Incomplete"
+            status = task.status.display_name
+            priority = task.priority.value
             title = task.title[:24] + "..." if len(task.title) > 24 else task.title
-            print(f"{task.id:<4}| {title:<24}| {status:<11}|")
-        print(f"\nTotal: {len(tasks)} tasks")
+            tags = ", ".join(task.tags) if task.tags else ""
+            print(f"{task.id:<4} {status:<9} {priority:<9} {title:<24} {tags}")
+        print(f"\nShowing {len(tasks)} task(s).")
 
     def _print_simple(self, tasks):
         """Print tasks in simple format."""
         for task in tasks:
             marker = "[✓]" if task.status.value == "completed" else "[ ]"
-            print(f"{marker} #{task.id}: {task.title}")
+            priority = f"[{task.priority.value}]" if task.tags else ""
+            print(f"{marker} #{task.id}: {priority} {task.title}".strip())
 
     def _print_json(self, tasks):
         """Print tasks in JSON format."""
-        import json
         data = [
             {
                 "id": t.id,
                 "title": t.title,
+                "description": t.description,
                 "status": t.status.value,
-                "created_at": t.created_at.isoformat()
+                "priority": t.priority.value,
+                "tags": t.tags,
+                "created_at": t.created_at.isoformat(),
+                "updated_at": t.updated_at.isoformat()
             }
             for t in tasks
         ]
         print(json.dumps(data, indent=2))
+
+    def _print_extended(self, tasks):
+        """Print tasks with full details."""
+        print("ID  Status    Priority  Title                      Tags")
+        print("---- --------- --------- -------------------------- ---------------")
+        for task in tasks:
+            status = task.status.display_name
+            priority = task.priority.value
+            title = task.title[:24] + "..." if len(task.title) > 24 else task.title
+            tags = ", ".join(task.tags) if task.tags else ""
+            print(f"{task.id:<4} {status:<9} {priority:<9} {title:<24} {tags}")
+
+        print(f"\nShowing {len(tasks)} task(s).")
+
+        print("\nTask Details:")
+        for task in tasks:
+            print(f"[{task.id}] {task.title}")
+            if task.description:
+                print(f"    Description: {task.description}")
+            print(f"    Priority: {task.priority.value} | Tags: [{', '.join(task.tags) if task.tags else 'none'}]")
+            print(f"    Created: {task.created_at.strftime('%Y-%m-%d %H:%M')} | Updated: {task.updated_at.strftime('%Y-%m-%d %H:%M')}")
+            print(f"    Status: {task.status.display_name}")
+            print()
