@@ -1,0 +1,379 @@
+openapi: 3.1.0
+info:
+  title: Phase II Todo API
+  description: |
+    RESTful API for multi-user task management with JWT authentication.
+    All endpoints require a valid JWT token in the Authorization header.
+    Tasks are automatically filtered by the authenticated user's ID.
+  version: 1.0.0
+  contact:
+    name: Evolution of Todo Project
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: http://backend:8000
+    description: Docker internal network
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: tasks
+    description: Task CRUD operations
+  - name: health
+    description: Health check endpoints
+
+paths:
+  /api/tasks:
+    get:
+      tags:
+        - tasks
+      summary: List all tasks for authenticated user
+      description: Returns all tasks owned by the authenticated user, sorted by creation date (newest first)
+      operationId: listTasks
+      responses:
+        '200':
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskResponse'
+              example:
+                - id: 1
+                  title: "Complete project spec"
+                  description: "Write the full specification document"
+                  completed: false
+                  created_at: "2026-01-15T10:00:00Z"
+                  updated_at: "2026-01-15T10:00:00Z"
+                - id: 2
+                  title: "Review code"
+                  description: null
+                  completed: true
+                  created_at: "2026-01-14T09:00:00Z"
+                  updated_at: "2026-01-15T11:00:00Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags:
+        - tasks
+      summary: Create a new task
+      description: Creates a new task for the authenticated user
+      operationId: createTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreate'
+            example:
+              title: "New task"
+              description: "Optional description"
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/tasks/{task_id}:
+    parameters:
+      - name: task_id
+        in: path
+        required: true
+        description: The task ID
+        schema:
+          type: integer
+          minimum: 1
+
+    get:
+      tags:
+        - tasks
+      summary: Get a specific task
+      description: Returns a single task by ID (only if owned by authenticated user)
+      operationId: getTask
+      responses:
+        '200':
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - tasks
+      summary: Update a task
+      description: Updates an existing task (only if owned by authenticated user)
+      operationId: updateTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+            example:
+              title: "Updated title"
+              description: "Updated description"
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+    delete:
+      tags:
+        - tasks
+      summary: Delete a task
+      description: Permanently deletes a task (only if owned by authenticated user)
+      operationId: deleteTask
+      responses:
+        '204':
+          description: Task deleted successfully (no content)
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/tasks/{task_id}/complete:
+    parameters:
+      - name: task_id
+        in: path
+        required: true
+        description: The task ID
+        schema:
+          type: integer
+          minimum: 1
+
+    patch:
+      tags:
+        - tasks
+      summary: Toggle task completion status
+      description: Toggles the completed status of a task (only if owned by authenticated user)
+      operationId: toggleTaskComplete
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskToggle'
+            example:
+              completed: true
+      responses:
+        '200':
+          description: Task completion status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /health:
+    get:
+      tags:
+        - health
+      summary: Health check
+      description: Returns API health status
+      operationId: healthCheck
+      security: []  # No auth required
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+                  timestamp:
+                    type: string
+                    format: date-time
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from Better Auth
+
+  schemas:
+    TaskCreate:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Task title (required)
+          example: "Complete project spec"
+        description:
+          type: string
+          nullable: true
+          description: Task description (optional)
+          example: "Write the full specification document"
+
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Updated task title
+          example: "Updated title"
+        description:
+          type: string
+          nullable: true
+          description: Updated task description
+          example: "Updated description"
+
+    TaskToggle:
+      type: object
+      required:
+        - completed
+      properties:
+        completed:
+          type: boolean
+          description: New completion status
+          example: true
+
+    TaskResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Task ID
+          example: 1
+        title:
+          type: string
+          description: Task title
+          example: "Complete project spec"
+        description:
+          type: string
+          nullable: true
+          description: Task description
+          example: "Write the full specification document"
+        completed:
+          type: boolean
+          description: Completion status
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2026-01-15T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2026-01-15T10:00:00Z"
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Invalid token"
+        detail:
+          type: string
+          description: Detailed error information
+          example: "Token has expired"
+
+    ValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  type: string
+                description: Error location
+                example: ["body", "title"]
+              msg:
+                type: string
+                description: Error message
+                example: "field required"
+              type:
+                type: string
+                description: Error type
+                example: "value_error.missing"
+
+  responses:
+    Unauthorized:
+      description: Authentication required or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Invalid token"
+            detail: "Token signature verification failed"
+
+    NotFound:
+      description: Resource not found (or not owned by user)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Not found"
+            detail: "Task not found"
+
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Bad request"
+            detail: "Invalid JSON payload"
+
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+          example:
+            detail:
+              - loc: ["body", "title"]
+                msg: "field required"
+                type: "value_error.missing"
