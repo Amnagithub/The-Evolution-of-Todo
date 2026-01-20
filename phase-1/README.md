@@ -97,6 +97,10 @@ All 59 tests pass:
 - Unit tests for formatters (table, simple, JSON)
 - Integration tests for workflow operations
 
+  ## Demo
+
+[Watch the demo video](https://www.loom.com/share/306bdec1e3bd4b0b8f0ac0d7480ab142)
+
 ## Future Phases
 
 - **Phase 2**: Web + Database (Flask/FastAPI, SQLite)
