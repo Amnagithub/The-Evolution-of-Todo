@@ -4,7 +4,6 @@ emoji: ⚡
 colorFrom: purple
 colorTo: pink
 sdk: docker
-sdk_version: "0.28.1"
 python_version: "3.12"
 app_file: main.py
 pinned: false

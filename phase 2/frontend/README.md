@@ -4,6 +4,7 @@ emoji: 📋
 colorFrom: blue
 colorTo: green
 sdk: static
+sdk_version: "14"
 app_file: out/index.html
 pinned: false
 ---
