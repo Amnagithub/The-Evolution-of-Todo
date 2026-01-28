@@ -1,3 +1,15 @@
+---
+title: Todo Backend API
+emoji: ⚡
+colorFrom: purple
+colorTo: pink
+sdk: docker
+sdk_version: "0.28.1"
+python_version: "3.12"
+app_file: main.py
+pinned: false
+---
+
 # Todo Backend API
 
 FastAPI backend for the Phase II Todo Web Application with JWT authentication and Neon Postgres database.

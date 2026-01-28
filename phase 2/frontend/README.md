@@ -1,3 +1,13 @@
+---
+title: Todo Frontend
+emoji: 📋
+colorFrom: blue
+colorTo: green
+sdk: static
+app_file: out/index.html
+pinned: false
+---
+
 # Todo Frontend
 
 Next.js 14 frontend for the Phase II Todo Web Application with Better Auth authentication.
