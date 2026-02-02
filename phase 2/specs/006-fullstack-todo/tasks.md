@@ -161,7 +161,7 @@
 - [x] T051 [P] Add loading UI in `frontend/app/loading.tsx`
 - [x] T052 Verify docker-compose up starts both services without errors
 - [x] T053 Verify all 6 API endpoints respond correctly per OpenAPI spec in `specs/006-fullstack-todo/contracts/openapi.yaml`
-- [ ] T054 Run quickstart.md validation: complete signup → CRUD → logout → verify isolation
+- [x] T054 Run quickstart.md validation: complete signup → CRUD → logout → verify isolation
 - [x] T055 Final security review: no secrets in code, JWT validation on all protected routes, user_id filtering on all task queries
 
 ---
