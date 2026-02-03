@@ -1,0 +1,22 @@
+# Environment files (contain secrets)
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+
+# Build outputs
+.next/
+dist/
+build/
+
+# Database files
+*.db
+*.sqlite
+
+# IDE
+.vscode/
+.idea/
