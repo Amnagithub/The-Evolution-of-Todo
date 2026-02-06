@@ -43,7 +43,7 @@ app.add_middleware(
         "http://127.0.0.1:3001",
         "http://frontend:3000",
         # Vercel production deployments
-        "https://the-evolution-of-todo.vercel.app",
+        "https://the-evolution-of-todo-wheat.vercel.app/tasks",
         "https://*.vercel.app",
     ],
     allow_origin_regex=r"https://.*\.vercel\.app",
