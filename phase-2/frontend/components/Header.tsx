@@ -8,6 +8,9 @@ export function Header() {
   const { data: session } = useSession();
 
   const handleSignOut = async () => {
+    // Set flag in sessionStorage to indicate signout
+    sessionStorage.setItem("justSignedOut", "true");
+    
     try {
       // Clear all auth cookies first
       await fetch("/api/auth/clear-session", { method: "POST" });

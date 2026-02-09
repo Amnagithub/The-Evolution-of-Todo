@@ -2,7 +2,7 @@
 
 import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -11,12 +11,22 @@ interface AuthGuardProps {
 export function AuthGuard({ children }: AuthGuardProps) {
   const { data: session, isPending } = useSession();
   const router = useRouter();
+  const [signedOut, setSignedOut] = useState(false);
 
   useEffect(() => {
-    if (!isPending && !session) {
+    // Check if user just signed out by looking for a flag in sessionStorage
+    const hasSignedOut = sessionStorage.getItem("justSignedOut");
+    if (hasSignedOut) {
+      setSignedOut(true);
+      sessionStorage.removeItem("justSignedOut");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isPending && !session && !signedOut) {
       router.push("/signin");
     }
-  }, [session, isPending, router]);
+  }, [session, isPending, router, signedOut]);
 
   if (isPending) {
     return (
@@ -26,7 +36,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
     );
   }
 
-  if (!session) {
+  if (!session && !signedOut) {
     return null;
   }
 
