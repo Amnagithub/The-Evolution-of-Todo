@@ -1,26 +1,33 @@
 import { auth } from "@/lib/auth";
-import { cookies } from "next/headers";
+import { headers, cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
 export async function POST() {
   try {
+    // Get headers for signOut
+    const headersList = await headers();
+    const headersInit: HeadersInit = {};
+    headersList.forEach((value, key) => {
+      headersInit[key] = value;
+    });
+
     // Sign out from Better Auth
     await auth.api.signOut({
-      headers: await cookies(),
+      headers: headersInit,
     });
 
     // Clear all Better Auth cookies explicitly
     const cookieStore = await cookies();
-    const cookieNames = cookieStore.getAll().map(c => c.name);
+    const allCookies = cookieStore.getAll();
 
     const response = NextResponse.json({ success: true });
 
-    // Clear all cookies
-    for (const name of cookieNames) {
-      if (name.includes("better") || name.includes("auth") || name.includes("session")) {
-        response.cookies.delete(name);
+    // Clear all cookies related to auth
+    for (const cookie of allCookies) {
+      if (cookie.name.includes("better") || cookie.name.includes("auth") || cookie.name.includes("session")) {
+        response.cookies.delete(cookie.name);
       }
     }
 
