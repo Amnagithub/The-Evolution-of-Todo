@@ -56,7 +56,7 @@ export default function SignUpPage() {
         console.error("Signup error:", result.error);
         setError(result.error.message || "Registration failed. Please try again.");
       } else {
-        // Auto sign-in is enabled, redirect to tasks
+        // Signup successful, session created automatically, redirect to tasks
         router.push("/tasks");
       }
     } catch {

@@ -27,7 +27,7 @@ function createAuth() {
     database: pool,
     emailAndPassword: {
       enabled: true,
-      autoSignIn: false, // Disable auto sign-in to prevent automatic re-authentication
+      autoSignIn: true, // Automatically create session after signup/signin
     },
     session: {
       expiresIn: 60 * 60 * 24 * 7, // 7 days
