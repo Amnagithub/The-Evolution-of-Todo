@@ -8,8 +8,16 @@ export function Header() {
   const { data: session } = useSession();
 
   const handleSignOut = async () => {
+    try {
+      // Clear all auth cookies first
+      await fetch("/api/auth/clear-session", { method: "POST" });
+    } catch {
+      // Ignore errors from clear-session
+    }
+    // Sign out from Better Auth
     await signOut();
-    router.push("/signin");
+    // Force a full page reload to clear all caches
+    window.location.href = "/signin";
   };
 
   if (!session) {

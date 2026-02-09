@@ -23,14 +23,14 @@ function createAuth() {
     database: pool,
     emailAndPassword: {
       enabled: true,
-      autoSignIn: true,
+      autoSignIn: false, // Disable auto sign-in to prevent automatic re-authentication
     },
     session: {
       expiresIn: 60 * 60 * 24 * 7, // 7 days
       updateAge: 60 * 60 * 24, // 1 day
       cookieCache: {
-        enabled: true,
-        maxAge: 5 * 60, // 5 minutes
+        enabled: false, // Disable cookie cache to ensure fresh sessions
+        maxAge: 0,
       },
     },
     secret: process.env.BETTER_AUTH_SECRET || "dev-secret-change-in-production",
@@ -38,6 +38,7 @@ function createAuth() {
       "http://localhost:3000",
       "http://localhost:8000",
       "https://the-evolution-of-todo-wheat.vercel.app",
+      "https://the-evolution-of-todo.vercel.app",
       process.env.NEXT_PUBLIC_APP_URL || "",
       process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "",
     ].filter(Boolean),
