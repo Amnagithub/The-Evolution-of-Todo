@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from database import init_db
-from routes import tasks_router
+from routes import tasks_router, chat_router
 
 
 class DebugCORSMiddleware(BaseHTTPMiddleware):
@@ -61,6 +61,7 @@ app.add_middleware(DebugCORSMiddleware)
 
 # Register task routes
 app.include_router(tasks_router)
+app.include_router(chat_router)
 
 
 @app.get("/")
