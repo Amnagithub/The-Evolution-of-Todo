@@ -1,5 +1,6 @@
 """FastAPI application entry point."""
 from contextlib import asynccontextmanager
+from datetime import datetime
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -45,8 +46,11 @@ app.add_middleware(
         # Vercel production deployments
         "https://the-evolution-of-todo-wheat.vercel.app/tasks",
         "https://*.vercel.app",
+        # HuggingFace Spaces
+        "https://amnaaplus-todo-frontend.hf.space",
+        "https://amnaaplus-todo-backend.hf.space",
     ],
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_origin_regex=r"https://.*\.hf\.space|https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "Accept", "X-Requested-With"],
@@ -68,8 +72,20 @@ def root():
 @app.get("/health")
 def health_check():
     """Health check endpoint (no auth required)."""
-    from datetime import datetime
     return {
         "status": "ok",
         "timestamp": datetime.utcnow().isoformat()
     }
+
+
+@app.get("/api/routes")
+def list_routes():
+    """Debug endpoint to list all registered routes."""
+    routes = []
+    for route in app.routes:
+        if hasattr(route, 'path') and hasattr(route, 'methods'):
+            routes.append({
+                "path": route.path,
+                "methods": list(route.methods)
+            })
+    return {"routes": routes}

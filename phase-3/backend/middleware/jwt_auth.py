@@ -19,7 +19,8 @@ load_dotenv(backend_dir / ".env")
 
 # Development mode: bypass authentication when DATABASE_URL is not set
 # This allows local development without needing a shared PostgreSQL database
-DEV_MODE = os.getenv("DEV_MODE", "").lower() in ("true", "1", "yes")
+# Also check HuggingFace environment for dev mode
+DEV_MODE = os.getenv("DEV_MODE", "").lower() in ("true", "1", "yes") or os.getenv("SPACE_ID", "") != ""
 DEV_USER_ID = os.getenv("DEV_USER_ID", "dev-user-local")
 
 if DEV_MODE:
