@@ -1,0 +1,413 @@
+openapi: 3.1.0
+info:
+  title: Analytics Dashboard API
+  version: 1.0.0
+  description: |
+    Phase III Analytics API for task productivity metrics and insights.
+    Extends Phase II FastAPI application.
+
+servers:
+  - url: http://localhost:8000
+    description: Local development
+  - url: https://api.example.com
+    description: Production
+
+security:
+  - BearerAuth: []
+
+paths:
+  /api/analytics/overview:
+    get:
+      summary: Get analytics overview
+      description: Returns total tasks, completed count, pending count, and completion rate.
+      operationId: getAnalyticsOverview
+      tags:
+        - Analytics
+      responses:
+        '200':
+          description: Analytics overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OverviewResponse'
+              example:
+                total: 47
+                completed: 32
+                pending: 15
+                rate: 68.1
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/analytics/by-priority:
+    get:
+      summary: Get tasks by priority
+      description: Returns task count grouped by priority level.
+      operationId: getTasksByPriority
+      tags:
+        - Analytics
+      responses:
+        '200':
+          description: Priority breakdown
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PriorityCount'
+              example:
+                - priority: high
+                  count: 12
+                - priority: medium
+                  count: 25
+                - priority: low
+                  count: 10
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/analytics/daily-completion:
+    get:
+      summary: Get daily completion trend
+      description: Returns completed tasks per day for the last 7 days.
+      operationId: getDailyCompletion
+      tags:
+        - Analytics
+      parameters:
+        - name: days
+          in: query
+          description: Number of days to include (default 7, max 30)
+          schema:
+            type: integer
+            default: 7
+            minimum: 1
+            maximum: 30
+      responses:
+        '200':
+          description: Daily completion trend
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DailyCount'
+              example:
+                - date: "2026-01-30"
+                  count: 5
+                - date: "2026-01-31"
+                  count: 3
+                - date: "2026-02-01"
+                  count: 7
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/analytics/productivity-score:
+    get:
+      summary: Get productivity score
+      description: Returns a calculated productivity score based on recent activity.
+      operationId: getProductivityScore
+      tags:
+        - Analytics
+      responses:
+        '200':
+          description: Productivity score
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductivityScore'
+              example:
+                score: 80
+                period: last_7_days
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/analytics/streak:
+    get:
+      summary: Get completion streak
+      description: Returns current and longest task completion streaks.
+      operationId: getStreak
+      tags:
+        - Analytics
+      responses:
+        '200':
+          description: Streak information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StreakResponse'
+              example:
+                current_streak: 5
+                longest_streak: 12
+                last_completion_date: "2026-02-05"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/analytics/chat-summary:
+    get:
+      summary: Get chat analytics summary
+      description: Returns chat usage statistics including message count and tool usage.
+      operationId: getChatSummary
+      tags:
+        - Analytics
+      responses:
+        '200':
+          description: Chat summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSummary'
+              example:
+                total_messages: 150
+                messages_today: 12
+                tool_usage:
+                  - tool: add_task
+                    count: 45
+                  - tool: list_tasks
+                    count: 38
+                  - tool: complete_task
+                    count: 32
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/goals:
+    get:
+      summary: Get user goals
+      description: Returns user's weekly and monthly task completion goals.
+      operationId: getGoals
+      tags:
+        - Goals
+      responses:
+        '200':
+          description: User goals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Goal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: Create a goal
+      description: Creates a new weekly or monthly task completion goal.
+      operationId: createGoal
+      tags:
+        - Goals
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoalCreate'
+      responses:
+        '201':
+          description: Goal created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Goal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/goals/{goal_id}:
+    delete:
+      summary: Delete a goal
+      description: Deletes a user's goal.
+      operationId: deleteGoal
+      tags:
+        - Goals
+      parameters:
+        - name: goal_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Goal deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Goal not found
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: Better Auth session token
+
+  schemas:
+    OverviewResponse:
+      type: object
+      required:
+        - total
+        - completed
+        - pending
+        - rate
+      properties:
+        total:
+          type: integer
+          description: Total number of tasks
+        completed:
+          type: integer
+          description: Number of completed tasks
+        pending:
+          type: integer
+          description: Number of pending tasks
+        rate:
+          type: number
+          format: float
+          description: Completion rate percentage (0-100)
+
+    PriorityCount:
+      type: object
+      required:
+        - priority
+        - count
+      properties:
+        priority:
+          type: string
+          enum: [low, medium, high]
+          description: Priority level
+        count:
+          type: integer
+          description: Number of tasks with this priority
+
+    DailyCount:
+      type: object
+      required:
+        - date
+        - count
+      properties:
+        date:
+          type: string
+          format: date
+          description: Date (YYYY-MM-DD)
+        count:
+          type: integer
+          description: Number of tasks completed on this date
+
+    ProductivityScore:
+      type: object
+      required:
+        - score
+        - period
+      properties:
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Productivity score (0-100)
+        period:
+          type: string
+          description: Time period for calculation
+
+    StreakResponse:
+      type: object
+      required:
+        - current_streak
+        - longest_streak
+      properties:
+        current_streak:
+          type: integer
+          description: Current consecutive days with completed tasks
+        longest_streak:
+          type: integer
+          description: Longest streak ever achieved
+        last_completion_date:
+          type: string
+          format: date
+          description: Date of last completed task
+
+    ChatSummary:
+      type: object
+      required:
+        - total_messages
+        - messages_today
+        - tool_usage
+      properties:
+        total_messages:
+          type: integer
+          description: Total chat messages
+        messages_today:
+          type: integer
+          description: Messages sent today
+        tool_usage:
+          type: array
+          items:
+            type: object
+            properties:
+              tool:
+                type: string
+              count:
+                type: integer
+
+    Goal:
+      type: object
+      required:
+        - id
+        - goal_type
+        - target_count
+        - created_at
+      properties:
+        id:
+          type: integer
+        goal_type:
+          type: string
+          enum: [weekly, monthly]
+        target_count:
+          type: integer
+          minimum: 1
+        current_count:
+          type: integer
+          description: Current progress toward goal
+        created_at:
+          type: string
+          format: date-time
+
+    GoalCreate:
+      type: object
+      required:
+        - goal_type
+        - target_count
+      properties:
+        goal_type:
+          type: string
+          enum: [weekly, monthly]
+        target_count:
+          type: integer
+          minimum: 1
+          maximum: 1000
+
+    Error:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+
+  responses:
+    Unauthorized:
+      description: Unauthorized - invalid or expired session
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            detail: "Not authenticated"
+
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+tags:
+  - name: Analytics
+    description: Analytics and metrics endpoints
+  - name: Goals
+    description: User goal management

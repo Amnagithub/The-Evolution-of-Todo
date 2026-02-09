@@ -1,0 +1,240 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MCP Tool Definitions",
+  "description": "Phase III MCP tools for AI Todo Chatbot",
+  "tools": [
+    {
+      "name": "add_task",
+      "description": "Create a new task for the user. Use when user says 'add', 'create', 'remember to', or 'I need to'.",
+      "parameters": {
+        "type": "object",
+        "required": ["user_id", "title"],
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "Authenticated user's ID (injected from context)"
+          },
+          "title": {
+            "type": "string",
+            "description": "Task title (1-255 characters)",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional task description"
+          }
+        }
+      },
+      "returns": {
+        "type": "object",
+        "properties": {
+          "task_id": { "type": "integer" },
+          "status": { "type": "string", "const": "created" },
+          "title": { "type": "string" }
+        },
+        "required": ["task_id", "status", "title"]
+      },
+      "errors": [
+        { "code": "empty_title", "message": "Please give me a valid title (max 255 chars for title)." },
+        { "code": "unauthorized", "message": "You can only manage your own data" },
+        { "code": "title_too_long", "message": "Please give me a valid title (max 255 chars for title)." }
+      ]
+    },
+    {
+      "name": "list_tasks",
+      "description": "List user's tasks with optional status filter. Use when user says 'show', 'list', 'what's pending', or 'all tasks'.",
+      "parameters": {
+        "type": "object",
+        "required": ["user_id"],
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "Authenticated user's ID (injected from context)"
+          },
+          "status": {
+            "type": "string",
+            "description": "Filter by status",
+            "enum": ["all", "pending", "completed"],
+            "default": "all"
+          }
+        }
+      },
+      "returns": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "integer" },
+            "title": { "type": "string" },
+            "description": { "type": ["string", "null"] },
+            "completed": { "type": "boolean" },
+            "priority": { "type": "string", "enum": ["low", "medium", "high"] },
+            "created_at": { "type": "string", "format": "date-time" }
+          }
+        }
+      },
+      "errors": [
+        { "code": "unauthorized", "message": "You can only manage your own data" },
+        { "code": "invalid_status", "message": "Status must be 'all', 'pending', or 'completed'." }
+      ]
+    },
+    {
+      "name": "complete_task",
+      "description": "Mark a task as completed. Use when user says 'done', 'complete', 'mark as done', or 'check off'. If user provides name instead of ID, first call list_tasks to find matching task.",
+      "parameters": {
+        "type": "object",
+        "required": ["user_id", "task_id"],
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "Authenticated user's ID (injected from context)"
+          },
+          "task_id": {
+            "type": "integer",
+            "description": "ID of the task to complete"
+          }
+        }
+      },
+      "returns": {
+        "type": "object",
+        "properties": {
+          "task_id": { "type": "integer" },
+          "status": { "type": "string", "const": "completed" },
+          "title": { "type": "string" }
+        },
+        "required": ["task_id", "status", "title"]
+      },
+      "errors": [
+        { "code": "not_found", "message": "I couldn't find a task matching '{id}'. Want me to list your current tasks?" },
+        { "code": "unauthorized", "message": "You can only manage your own data" },
+        { "code": "already_completed", "message": "This task is already marked as done." }
+      ]
+    },
+    {
+      "name": "delete_task",
+      "description": "Delete a task permanently. Use when user says 'delete', 'remove', or 'cancel'. If user provides name instead of ID, first call list_tasks to find matching task.",
+      "parameters": {
+        "type": "object",
+        "required": ["user_id", "task_id"],
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "Authenticated user's ID (injected from context)"
+          },
+          "task_id": {
+            "type": "integer",
+            "description": "ID of the task to delete"
+          }
+        }
+      },
+      "returns": {
+        "type": "object",
+        "properties": {
+          "task_id": { "type": "integer" },
+          "status": { "type": "string", "const": "deleted" },
+          "title": { "type": "string" }
+        },
+        "required": ["task_id", "status", "title"]
+      },
+      "errors": [
+        { "code": "not_found", "message": "I couldn't find a task matching '{id}'. Want me to list your current tasks?" },
+        { "code": "unauthorized", "message": "You can only manage your own data" }
+      ]
+    },
+    {
+      "name": "update_task",
+      "description": "Update a task's title or description. Use when user says 'change', 'update', 'edit', or 'rename'. If user provides name instead of ID, first call list_tasks to find matching task.",
+      "parameters": {
+        "type": "object",
+        "required": ["user_id", "task_id"],
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "Authenticated user's ID (injected from context)"
+          },
+          "task_id": {
+            "type": "integer",
+            "description": "ID of the task to update"
+          },
+          "title": {
+            "type": "string",
+            "description": "New title (1-255 characters)",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "description": "New description"
+          }
+        }
+      },
+      "returns": {
+        "type": "object",
+        "properties": {
+          "task_id": { "type": "integer" },
+          "status": { "type": "string", "const": "updated" },
+          "title": { "type": "string" }
+        },
+        "required": ["task_id", "status", "title"]
+      },
+      "errors": [
+        { "code": "not_found", "message": "I couldn't find a task matching '{id}'. Want me to list your current tasks?" },
+        { "code": "unauthorized", "message": "You can only manage your own data" },
+        { "code": "no_changes", "message": "Looks like nothing changed — did you want to update something?" }
+      ]
+    },
+    {
+      "name": "get_user_details",
+      "description": "Get non-sensitive user profile information. Use when user asks 'who am I?', 'my profile', 'user id', or 'account info'. NEVER return passwords, tokens, or recovery codes.",
+      "parameters": {
+        "type": "object",
+        "required": ["user_id"],
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "Authenticated user's ID (injected from context)"
+          }
+        }
+      },
+      "returns": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "string" },
+          "username": { "type": "string" },
+          "created_at": { "type": "string", "format": "date-time" }
+        },
+        "required": ["user_id", "username", "created_at"]
+      },
+      "errors": [
+        { "code": "unauthorized", "message": "You can only manage your own data" },
+        { "code": "session_expired", "message": "Your session has expired. Please sign in again." }
+      ]
+    }
+  ],
+  "security_rules": [
+    {
+      "rule": "user_ownership",
+      "description": "Every tool MUST validate that user_id matches the authenticated user",
+      "enforcement": "if user_id != authenticated_user.id: return {error: 'unauthorized', message: 'You can only manage your own data'}"
+    },
+    {
+      "rule": "sensitive_data",
+      "description": "NEVER return passwords, tokens, recovery codes, or other sensitive user data",
+      "enforcement": "get_user_details returns ONLY: user_id, username, created_at"
+    }
+  ],
+  "chaining_rules": [
+    {
+      "scenario": "user_refers_to_task_by_name",
+      "description": "When user references task by name/description instead of ID",
+      "flow": [
+        "1. Call list_tasks to get all user's tasks",
+        "2. Fuzzy match user's input against task titles",
+        "3. If unique match (similarity > 0.6): proceed with target tool",
+        "4. If multiple matches: ask user to clarify which task",
+        "5. If no match: respond with 'I couldn't find a task matching...' and offer to list tasks"
+      ]
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Header } from "@/components/Header";
 import { TaskForm } from "@/components/TaskForm";
@@ -130,6 +131,15 @@ function TasksContent() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
+      <div className="mb-4">
+        <Link
+          href="/dashboard"
+          className="text-blue-600 hover:underline text-sm"
+        >
+          &larr; Back to Dashboard
+        </Link>
+      </div>
+
       <TaskForm onSubmit={handleCreateTask} />
 
       {error && (

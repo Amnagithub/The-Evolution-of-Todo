@@ -1,26 +1,24 @@
 import { betterAuth } from "better-auth";
 import { Pool } from "pg";
-import Database from "better-sqlite3";
-import path from "path";
 
 // Determine database configuration based on environment
 const DATABASE_URL = process.env.DATABASE_URL;
-const IS_SQLITE = !DATABASE_URL || DATABASE_URL.startsWith("sqlite");
 
-// Configure database adapter
-let databaseConfig;
-if (IS_SQLITE) {
-  // Use SQLite for local development - store in parent directory so backend can access
-  const dbPath = path.resolve(process.cwd(), "../backend/todo.db");
-  console.log("[AUTH] Using SQLite database at:", dbPath);
-  databaseConfig = new Database(dbPath);
-} else {
-  // Use PostgreSQL for production
-  console.log("[AUTH] Using PostgreSQL database");
-  databaseConfig = new Pool({
-    connectionString: DATABASE_URL,
-  });
+// Configure database adapter - PostgreSQL only for Vercel deployment
+// SQLite is not supported on Vercel serverless environment
+let databaseConfig: Pool;
+
+if (!DATABASE_URL) {
+  throw new Error("DATABASE_URL environment variable is required for production deployment");
 }
+
+// Use PostgreSQL for production with optimized pooling
+databaseConfig = new Pool({
+  connectionString: DATABASE_URL,
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+});
 
 // Better Auth server configuration (session-based, no JWT)
 export const auth = betterAuth({
@@ -38,7 +36,13 @@ export const auth = betterAuth({
     },
   },
   secret: process.env.BETTER_AUTH_SECRET || "dev-secret-change-in-production",
-  trustedOrigins: ["http://localhost:8000"],
+  trustedOrigins: [
+    "http://localhost:3000",
+    "http://localhost:8000",
+    "https://the-evolution-of-todo-wheat.vercel.app",
+    process.env.NEXT_PUBLIC_APP_URL || "",
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "",
+  ].filter(Boolean),
 });
 
 export type Session = typeof auth.$Infer.Session;

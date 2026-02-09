@@ -1,16 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Remove 'output: export' to support dynamic routes and API endpoints
+  // Optimized for Vercel deployment
+  // Uses PostgreSQL (Neon) for database - no native modules required
 
-  // Externalize native modules that don't work with webpack bundling
-  experimental: {
-    serverComponentsExternalPackages: ['better-sqlite3'],
-  },
-
-  webpack: (config) => {
-    // Exclude native modules from webpack bundling
-    config.externals = [...(config.externals || []), 'better-sqlite3'];
-    return config;
+  // Environment variable validation at build time
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
 }
 

@@ -1,0 +1,338 @@
+openapi: 3.1.0
+info:
+  title: AI Todo Chatbot API
+  version: 1.0.0
+  description: |
+    Phase III Chat API for natural language todo management.
+    Extends Phase II FastAPI application.
+
+servers:
+  - url: http://localhost:8000
+    description: Local development
+  - url: https://api.example.com
+    description: Production
+
+security:
+  - BearerAuth: []
+
+paths:
+  /api/chat:
+    post:
+      summary: Send a chat message
+      description: |
+        Sends a user message to the AI agent and receives a response.
+        The agent may invoke MCP tools to manage tasks.
+      operationId: sendChatMessage
+      tags:
+        - Chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            examples:
+              addTask:
+                summary: Add a task
+                value:
+                  message: "add buy groceries"
+              listTasks:
+                summary: List tasks
+                value:
+                  message: "show my tasks"
+              completeTask:
+                summary: Complete a task
+                value:
+                  message: "done buy groceries"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+              examples:
+                taskAdded:
+                  summary: Task created
+                  value:
+                    message: "Added buy groceries (ID 1) ✓"
+                    tool_calls:
+                      - tool: add_task
+                        arguments:
+                          title: buy groceries
+                        result:
+                          task_id: 1
+                          status: created
+                          title: buy groceries
+                    conversation_id: 1
+        '401':
+          description: Unauthorized - invalid or expired session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/chat/history:
+    get:
+      summary: Get conversation history
+      description: |
+        Retrieves the user's conversation history.
+        Messages are ordered by creation time (oldest first).
+      operationId: getChatHistory
+      tags:
+        - Chat
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of messages to return
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 200
+        - name: offset
+          in: query
+          description: Number of messages to skip (for pagination)
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        '200':
+          description: Conversation history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatHistory'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/chat/clear:
+    delete:
+      summary: Clear conversation history
+      description: |
+        Deletes all messages in the user's conversation.
+        The conversation record is retained but messages are removed.
+      operationId: clearChatHistory
+      tags:
+        - Chat
+      responses:
+        '204':
+          description: History cleared successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: Better Auth session token
+
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: User's natural language message
+          minLength: 1
+          maxLength: 2000
+          example: "add buy groceries"
+
+    ChatResponse:
+      type: object
+      required:
+        - message
+        - conversation_id
+      properties:
+        message:
+          type: string
+          description: Assistant's response message
+          example: "Added buy groceries (ID 1) ✓"
+        tool_calls:
+          type: array
+          description: MCP tools invoked during response generation
+          items:
+            $ref: '#/components/schemas/ToolCall'
+        conversation_id:
+          type: integer
+          description: ID of the conversation
+          example: 1
+
+    ToolCall:
+      type: object
+      required:
+        - tool
+        - arguments
+        - result
+      properties:
+        tool:
+          type: string
+          enum:
+            - add_task
+            - list_tasks
+            - complete_task
+            - delete_task
+            - update_task
+            - get_user_details
+          description: Name of the MCP tool invoked
+        arguments:
+          type: object
+          description: Arguments passed to the tool
+          additionalProperties: true
+        result:
+          oneOf:
+            - $ref: '#/components/schemas/TaskResult'
+            - $ref: '#/components/schemas/TaskListResult'
+            - $ref: '#/components/schemas/UserDetailsResult'
+            - $ref: '#/components/schemas/ToolError'
+          description: Result returned by the tool
+
+    ChatHistory:
+      type: object
+      required:
+        - messages
+        - conversation_id
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+        conversation_id:
+          type: integer
+          description: ID of the conversation
+        total_count:
+          type: integer
+          description: Total number of messages in conversation
+
+    Message:
+      type: object
+      required:
+        - id
+        - role
+        - content
+        - created_at
+      properties:
+        id:
+          type: integer
+          description: Message ID
+        role:
+          type: string
+          enum: [user, assistant]
+          description: Who sent the message
+        content:
+          type: string
+          description: Message text
+        tool_calls:
+          type: array
+          items:
+            $ref: '#/components/schemas/ToolCall'
+          description: Tools invoked (assistant messages only)
+        created_at:
+          type: string
+          format: date-time
+          description: When the message was created
+
+    TaskResult:
+      type: object
+      required:
+        - task_id
+        - status
+        - title
+      properties:
+        task_id:
+          type: integer
+          description: ID of the affected task
+        status:
+          type: string
+          enum: [created, completed, deleted, updated]
+          description: Operation result
+        title:
+          type: string
+          description: Task title
+
+    TaskListResult:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: integer
+          title:
+            type: string
+          description:
+            type: string
+            nullable: true
+          completed:
+            type: boolean
+          priority:
+            type: string
+            enum: [low, medium, high]
+          created_at:
+            type: string
+            format: date-time
+
+    UserDetailsResult:
+      type: object
+      required:
+        - user_id
+        - username
+        - created_at
+      properties:
+        user_id:
+          type: string
+          description: User identifier
+        username:
+          type: string
+          description: Display name
+        created_at:
+          type: string
+          format: date-time
+          description: Account creation date
+
+    ToolError:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          enum:
+            - unauthorized
+            - not_found
+            - validation_error
+            - already_completed
+        message:
+          type: string
+          description: Human-friendly error message
+
+    Error:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Error description
+
+tags:
+  - name: Chat
+    description: AI chatbot endpoints for natural language todo management

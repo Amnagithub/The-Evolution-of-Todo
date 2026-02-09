@@ -102,10 +102,10 @@ function TaskDetailContent() {
         <div className="bg-red-50 text-red-600 p-6 rounded-lg text-center">
           <p className="mb-4">{error}</p>
           <Link
-            href="/tasks"
+            href="/dashboard"
             className="text-blue-600 hover:underline"
           >
-            Back to Tasks
+            Back to Dashboard
           </Link>
         </div>
       </div>
@@ -120,10 +120,10 @@ function TaskDetailContent() {
     <div className="max-w-2xl mx-auto">
       <div className="mb-4">
         <Link
-          href="/tasks"
+          href="/dashboard"
           className="text-blue-600 hover:underline text-sm"
         >
-          &larr; Back to Tasks
+          &larr; Back to Dashboard
         </Link>
       </div>
 
@@ -196,10 +196,10 @@ function TaskDetailContent() {
             {task.completed ? "Mark as Pending" : "Mark as Completed"}
           </button>
           <Link
-            href="/tasks"
+            href="/dashboard"
             className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
-            Edit in List
+            Back to Dashboard
           </Link>
           <button
             onClick={handleDelete}

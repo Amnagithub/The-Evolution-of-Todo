@@ -11,8 +11,6 @@ export async function GET() {
       headers: await headers(),
     });
 
-    // Debug: log session info
-    console.log("[DEBUG get-session] Session exists:", !!session);
 
     if (!session) {
       return NextResponse.json({ session: null, user: null }, { status: 200 });
@@ -22,8 +20,6 @@ export async function GET() {
     const cookieStore = await cookies();
     const allCookies = cookieStore.getAll();
 
-    // Debug: log all cookie names
-    console.log("[DEBUG get-session] All cookies:", allCookies.map(c => c.name));
 
     // Find the session token cookie (Better Auth uses different names)
     let sessionToken =
@@ -40,10 +36,6 @@ export async function GET() {
       );
       sessionToken = sessionCookie?.value;
     }
-
-    // Debug: log the session token (truncated for security)
-    console.log("[DEBUG get-session] Session token found:", sessionToken ? `${sessionToken.substring(0, 20)}...` : "null");
-    console.log("[DEBUG get-session] Session object token:", (session.session as { token?: string })?.token ? "present" : "absent");
 
     return NextResponse.json({
       session: {
