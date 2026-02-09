@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Header } from "@/components/Header";
 import { TaskForm } from "@/components/TaskForm";
@@ -130,6 +131,20 @@ function TasksContent() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
+      {/* Back to Dashboard Button */}
+      <div className="flex items-center justify-between">
+        <Link
+          href="/"
+          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Dashboard
+        </Link>
+        <h1 className="text-2xl font-bold text-gray-900">Manage Tasks</h1>
+      </div>
+
       <TaskForm onSubmit={handleCreateTask} />
 
       {error && (

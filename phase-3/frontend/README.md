@@ -9,9 +9,15 @@ app_file: out/index.html
 pinned: false
 ---
 
-# Todo Frontend
+# Todo Frontend - Phase 3
 
-Next.js 14 frontend for the Phase II Todo Web Application with Better Auth authentication.
+Next.js 14 frontend for the Phase 3 AI-Powered Todo Web Application with Better Auth authentication and AI chatbot assistant.
+
+## Live Demo
+
+**Live Application:** [https://ai-chatbot-the-evolution-of-todo-4j.vercel.app/dashboard](https://ai-chatbot-the-evolution-of-todo-4j.vercel.app/dashboard)
+
+**Demo Video:** [Watch on Google Drive](https://drive.google.com/file/d/1mMOedA8kA3Cv353Dv9sdovnRFJ0HfEh5/view?usp=sharing)
 
 ## Tech Stack
 
@@ -64,6 +70,11 @@ Open http://localhost:3000 in your browser.
 - **Completion Toggle** - Mark tasks as complete/incomplete
 - **Optimistic Updates** - Instant UI feedback with rollback on error
 - **User Isolation** - Each user only sees their own tasks
+- **AI Chatbot Assistant** - Natural language task management
+  - Floating chat widget with smooth animations
+  - "Add buy groceries" - Create new tasks
+  - "Show my tasks" - List all tasks
+  - "Done buy groceries" - Mark tasks complete
 
 ## Project Structure
 

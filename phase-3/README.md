@@ -1,18 +1,19 @@
-# Phase 2: Todo Web Application
+# Phase 3: AI-Powered Todo Web Application
 
-A full-stack web application for multi-user task management, evolving from the Phase 1 CLI application to a modern web-based solution with authentication and cloud database storage.
+A full-stack web application for multi-user task management with an AI chatbot assistant, evolving from Phase 2 to include natural language task management capabilities.
 
-## Demo
+## Live Demo
 
-Watch the demo video to see Phase 2 in action:
+**Live Application:** [https://ai-chatbot-the-evolution-of-todo-4j.vercel.app/dashboard](https://ai-chatbot-the-evolution-of-todo-4j.vercel.app/dashboard)
 
-[Demo Video](https://www.loom.com/share/7390ad60c6a64dca8a3eb19c51933ee3)
+**Demo Video:** [Watch on Google Drive](https://drive.google.com/file/d/1mMOedA8kA3Cv353Dv9sdovnRFJ0HfEh5/view?usp=sharing)
 
 ## Overview
 
-Phase 2 transforms the command-line todo application into a full-featured web application with:
+Phase 3 extends the web application with an AI-powered chatbot that enables natural language task management:
 - User authentication (signup, signin, signout)
 - Personal task management per user
+- **AI Chatbot Assistant** - Manage tasks using natural language
 - Real-time task updates
 - Cloud-based PostgreSQL storage
 
@@ -65,6 +66,11 @@ phase 2/
 - **Completion Toggle** - Mark tasks as complete/incomplete
 - **User Isolation** - Each user only sees their own tasks
 - **Optimistic Updates** - Instant UI feedback with rollback on error
+- **AI Chatbot Assistant** - Natural language task management
+  - "Add buy groceries" - Create new tasks
+  - "Show my tasks" - List all tasks
+  - "Done buy groceries" - Mark tasks complete
+  - Floating chat widget with smooth animations
 
 ## API Endpoints
 

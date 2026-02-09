@@ -16,7 +16,7 @@ export default function SignInPage() {
   // Redirect to dashboard if already logged in
   useEffect(() => {
     if (!isPending && session) {
-      router.push("/dashboard");
+      router.push("/");
     }
   }, [session, isPending, router]);
 
@@ -49,7 +49,8 @@ export default function SignInPage() {
         // Generic error message that doesn't reveal which field is incorrect
         setError("Invalid email or password");
       } else {
-        router.push("/dashboard");
+        router.push("/");
+        router.refresh();
       }
     } catch {
       setError("An error occurred. Please try again.");

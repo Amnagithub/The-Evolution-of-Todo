@@ -5,11 +5,13 @@
   "outputDirectory": ".next",
   "regions": ["iad1"],
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://amnaaplus-todo-backend.hf.space"
+    "NEXT_PUBLIC_API_URL": "https://amnaaplus-todo-backend.hf.space",
+    "NEXT_PUBLIC_APP_URL": "https://ai-chatbot-the-evolution-of-todo-4j.vercel.app"
   },
   "build": {
     "env": {
-      "NEXT_PUBLIC_API_URL": "https://amnaaplus-todo-backend.hf.space"
+      "NEXT_PUBLIC_API_URL": "https://amnaaplus-todo-backend.hf.space",
+      "NEXT_PUBLIC_APP_URL": "https://ai-chatbot-the-evolution-of-todo-4j.vercel.app"
     }
   }
 }

@@ -51,6 +51,7 @@ export const auth = betterAuth({
     "http://localhost:3001",
     "http://localhost:8000",
     // Production URLs
+    "https://ai-chatbot-the-evolution-of-todo-4j.vercel.app",
     process.env.NEXT_PUBLIC_APP_URL || "",
     // Vercel preview deployments
     process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "",

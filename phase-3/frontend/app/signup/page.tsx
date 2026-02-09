@@ -17,7 +17,7 @@ export default function SignUpPage() {
   // Redirect to dashboard if already logged in
   useEffect(() => {
     if (!isPending && session) {
-      router.push("/dashboard");
+      router.push("/");
     }
   }, [session, isPending, router]);
 
@@ -63,7 +63,8 @@ export default function SignUpPage() {
         setError(result.error.message || "Registration failed. Please try again.");
       } else {
         // Auto sign-in is enabled, redirect to dashboard
-        router.push("/dashboard");
+        router.push("/");
+        router.refresh();
       }
     } catch {
       setError("An error occurred. Please try again.");
