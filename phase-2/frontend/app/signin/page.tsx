@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { signIn } from "@/lib/auth-client";
+import { signIn, useSession } from "@/lib/auth-client";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -11,6 +11,24 @@ export default function SignInPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [authConfigured, setAuthConfigured] = useState(true);
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    // Check if auth is configured by trying to access environment
+    // If DATABASE_URL is not set, auth won't work
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/api/auth/get-session", { method: "GET" });
+        if (!response.ok) {
+          setAuthConfigured(false);
+        }
+      } catch {
+        setAuthConfigured(false);
+      }
+    };
+    checkAuth();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,9 +54,24 @@ export default function SignInPage() {
     }
   };
 
+  // Redirect if already signed in
+  if (session) {
+    router.push("/tasks");
+    return null;
+  }
+
   return (
     <div className="max-w-md mx-auto mt-16">
       <h1 className="text-3xl font-bold text-center mb-8">Sign In</h1>
+
+      {!authConfigured && (
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 p-4 rounded-md mb-6">
+          <p className="font-medium">Configuration Required</p>
+          <p className="text-sm mt-1">
+            Please set DATABASE_URL and BETTER_AUTH_SECRET in Vercel Dashboard Environment Variables.
+          </p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
@@ -79,7 +112,7 @@ export default function SignInPage() {
 
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || !authConfigured}
           className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? "Signing in..." : "Sign In"}
@@ -87,7 +120,7 @@ export default function SignInPage() {
       </form>
 
       <p className="mt-4 text-center text-sm text-gray-600">
-        Don&apos;t have an account?{" "}
+        Don't have an account?{" "}
         <Link href="/signup" className="text-blue-600 hover:underline">
           Sign up
         </Link>

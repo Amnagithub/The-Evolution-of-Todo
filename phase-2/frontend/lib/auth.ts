@@ -4,12 +4,16 @@ import { Pool } from "pg";
 // Lazy initialization to avoid build-time errors on Vercel
 // The auth instance is created on first use, not at module load time
 let _auth: ReturnType<typeof betterAuth> | null = null;
+let _authError: string | null = null;
 
 function createAuth() {
   const DATABASE_URL = process.env.DATABASE_URL;
+  const BETTER_AUTH_SECRET = process.env.BETTER_AUTH_SECRET;
 
-  if (!DATABASE_URL) {
-    throw new Error("DATABASE_URL environment variable is required");
+  // Check if required env vars are set
+  if (!DATABASE_URL || !BETTER_AUTH_SECRET) {
+    _authError = "DATABASE_URL or BETTER_AUTH_SECRET not configured. Please set these in Vercel Dashboard.";
+    return null;
   }
 
   const pool = new Pool({
@@ -33,7 +37,7 @@ function createAuth() {
         maxAge: 0,
       },
     },
-    secret: process.env.BETTER_AUTH_SECRET || "dev-secret-change-in-production",
+    secret: BETTER_AUTH_SECRET,
     trustedOrigins: [
       "http://localhost:3000",
       "http://localhost:8000",
@@ -48,11 +52,29 @@ function createAuth() {
 // Lazy getter for auth instance - only creates auth when actually accessed
 export const auth = new Proxy({} as ReturnType<typeof betterAuth>, {
   get(_, prop) {
+    if (_authError) {
+      // Return a no-op function for all properties if auth is not configured
+      if (prop === 'then') return undefined;
+      return () => { throw new Error(_authError!); };
+    }
     if (!_auth) {
       _auth = createAuth();
+      if (!_auth && !_authError) {
+        _authError = "Failed to initialize auth";
+      }
     }
-    return (_auth as Record<string | symbol, unknown>)[prop];
+    return (_auth as Record<string | symbol, unknown>)?.[prop];
   },
 });
+
+// Helper to check if auth is configured
+export function isAuthConfigured(): boolean {
+  return !_authError;
+}
+
+// Helper to get auth error message
+export function getAuthError(): string | null {
+  return _authError;
+}
 
 export type Session = typeof auth.$Infer.Session;

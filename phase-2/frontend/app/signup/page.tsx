@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signUp } from "@/lib/auth-client";
@@ -12,6 +12,22 @@ export default function SignUpPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [authConfigured, setAuthConfigured] = useState(true);
+
+  useEffect(() => {
+    // Check if auth is configured
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/api/auth/get-session", { method: "GET" });
+        if (!response.ok) {
+          setAuthConfigured(false);
+        }
+      } catch {
+        setAuthConfigured(false);
+      }
+    };
+    checkAuth();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,6 +69,15 @@ export default function SignUpPage() {
   return (
     <div className="max-w-md mx-auto mt-16">
       <h1 className="text-3xl font-bold text-center mb-8">Create Account</h1>
+
+      {!authConfigured && (
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 p-4 rounded-md mb-6">
+          <p className="font-medium">Configuration Required</p>
+          <p className="text-sm mt-1">
+            Please set DATABASE_URL and BETTER_AUTH_SECRET in Vercel Dashboard Environment Variables.
+          </p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
@@ -110,7 +135,7 @@ export default function SignUpPage() {
 
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || !authConfigured}
           className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? "Creating account..." : "Sign Up"}
